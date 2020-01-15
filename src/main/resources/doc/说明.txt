@@ -1,0 +1,178 @@
+zookeeper安装：
+   下载：https://mirrors.cnnic.cn/apache/zookeeper/
+
+1、解压到指定目录下 D:\zookeeper-3.5.5
+2、修改zoo_sample.cfg 文件名(D:\zookeeper-3.5.5\conf) 为 zoo.cfg
+3、修改 zoo.cfg中日志位置（这里先要在指定位置新增data,log文件夹），具体配置文件如下：
+# The number of milliseconds of each tick
+tickTime=2000
+# The number of ticks that the initial 
+# synchronization phase can take
+initLimit=10
+# The number of ticks that can pass between 
+# sending a request and getting an acknowledgement
+syncLimit=5
+# the directory where the snapshot is stored.
+# do not use /tmp for storage, /tmp here is just 
+# example sakes.
+dataDir=D:\\zookeeper\\data  
+dataLogDir=D:\\zookeeper\\log  
+# the port at which the clients will connect
+clientPort=2181
+# the maximum number of client connections.
+# increase this if you need to handle more clients
+#maxClientCnxns=60
+#
+# Be sure to read the maintenance section of the 
+# administrator guide before turning on autopurge.
+#
+# http://zookeeper.apache.org/doc/current/zookeeperAdmin.html#sc_maintenance
+#
+# The number of snapshots to retain in dataDir
+#autopurge.snapRetainCount=3
+# Purge task interval in hours
+# Set to "0" to disable auto purge feature
+#autopurge.purgeInterval=1
+配置文件简单解析
+1、tickTime：这个时间是作为 Zookeeper 服务器之间或客户端与服务器之间维持心跳的时间间隔，也就是每个 tickTime 时间就会发送一个心跳。
+2、dataDir：顾名思义就是 Zookeeper 保存数据的目录，默认情况下，Zookeeper 将写数据的日志文件也保存在这个目录里。
+3、dataLogDir：顾名思义就是 Zookeeper 保存日志文件的目录
+4、clientPort：这个端口就是客户端连接 Zookeeper 服务器的端口，Zookeeper 会监听这个端口，接受客户端的访问请求。
+
+启动Zookeeper
+1、进入到D:\zookeeper-3.5.5的bin目录，启动zkServer.cmd
+
+安装kafka:
+  下载：https://www.apache.org/dyn/closer.cgi?path=/kafka/2.4.0/kafka_2.11-2.4.0.tgz
+将下载下来的安装包解压,并进入到conf目录下面找到server.properties文件
+
+找到并编辑
+
+log.dirs=D:\\data\\logs\\kafka
+zookeeper.connect=localhost:2181
+zookeeper.connection.timeout.ms=300000 连接时间延长
+之后进入到kafka的目录下执行下面的命令,可以使用在文件夹的空白处按着shift加鼠标右键打开命令窗口
+
+.\bin\windows\kafka-server-start.bat .\config\server.properties  
+
+测试：
+创建主题：
+    kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test
+ 
+案例：
+D:\kafka_2.11-1.0.0\bin\windows> kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test
+Picked up JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF-8
+Created topic "test".   
+
+创建生产者：
+     kafka-console-producer.bat --broker-list localhost:9092 --topic test
+案例：
+D:\kafka_2.11-1.0.0\bin\windows>kafka-console-producer.bat --broker-list localhost:9092 --topic test
+Picked up JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF-8
+>ddddd
+>hellword!!!!
+>This is a message
+>
+
+创建消费者：
+       kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic test --from-beginning
+
+案例：
+D:\kafka_2.11-1.0.0\bin\windows>kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic test --from-beginning
+Picked up JAVA_TOOL_OPTIONS: -Dfile.encoding=UTF-8
+ddddd
+hellword!!!!
+This is a message
+
+面试：
+https://mp.weixin.qq.com/s/HYD_KyolHj7TtxjDUfIQxg
+
+
+1.什么是kafka
+       Kafka是分布式发布-订阅消息系统，它最初是由LinkedIn公司开发的，之后成为Apache项目的一部分
+，Kafka是一个分布式，可划分的，冗余备份的持久性的日志服务，它主要用于处理流式数据。
+2.为什么要使用 kafka? 为什么要使用消息队列?
+      缓冲和削峰：上游数据时有突发流量，下游可能扛不住，或者下游没有足够多的机器来保证冗余，kafka在中间可以起到一个缓冲的作用，把消息暂存在kafka中，下游服务就可以按照自己的节奏进行慢慢处理。
+      解耦和扩展性：项目开始的时候，并不能确定具体需求。消息队列可以作为一个接口层，解耦重要的业务流程。只需要遵守约定，针对数据编程即可获取扩展能力。
+      冗余：可以采用一对多的方式，一个生产者发布消息，可以被多个订阅topic的服务消费到，供多个毫无关联的业务使用。
+      健壮性：消息队列可以堆积请求，所以消费端业务即使短时间死掉，也不会影响主要业务的正常进行。
+      异步通信：很多时候，用户不想也不需要立即处理消息。消息队列提供了异步处理机制，允许用户把一个消息放入队列，但并不立即处理它。想向队列中放入多少消息就放多少，然后在需要的时候再去处理它们。
+3.kafka中的broker 是干什么的?
+      broker 是消息的代理，Producers往Brokers里面的指定Topic中写消息，Consumers从Brokers里面拉取指定Topic的消息，然后进行业务处理，broker在中间起到一个代理保存消息的中转站。
+4.kafka中的 zookeeper 起到什么作用，可以不用zookeeper么?
+       zookeeper 是一个分布式的协调组件，早期版本的kafka用zk做meta信息存储，consumer的消费状态，group的管理以及 offset的值。考虑到zk本身的一些因素以及整个架构较大概率存在单点问题，新版本中逐渐弱化了zookeeper的作用。新的consumer使用了kafka内部的group coordination协议，也减少了对zookeeper的依赖，但是broker依然依赖于ZK，zookeeper 在kafka中还用来选举controller 和 检测broker是否存活等等。
+5.kafka follower如何与leader同步数据?
+        Kafka的复制机制既不是完全的同步复制，也不是单纯的异步复制。完全同步复制要求All Alive Follower都复制完，这条消息才会被认为commit，这种复制方式极大的影响了吞吐率。而异步复制方式下，Follower异步的从Leader复制数据，数据只要被Leader写入log就被认为已经commit，这种情况下，如果leader挂掉，会丢失数据，kafka使用ISR的方式很好的均衡了确保数据不丢失以及吞吐率。Follower可以批量的从Leader复制数据，而且Leader充分利用磁盘顺序读以及send file(zero copy)机制，这样极大的提高复制性能，内部批量写磁盘，大幅减少了Follower与Leader的消息量差。
+6.什么情况下一个 broker 会从 isr中踢出去
+         leader会维护一个与其基本保持同步的Replica列表，该列表称为ISR(in-sync Replica)，每个Partition都会有一个ISR，而且是由leader动态维护 ，如果一个follower比一个leader落后太多，或者超过一定时间未发起数据复制请求，则leader将其重ISR中移除 ，详细参考 kafka的高可用机制
+7.kafka 为什么那么快?
+      Cache Filesystem Cache PageCache缓存
+      顺序写 由于现代的操作系统提供了预读和写技术，磁盘的顺序写大多数情况下比随机写内存还要快。
+      Zero-copy 零拷贝技术减少拷贝次数
+      Batching of Messages 批量量处理。合并小的请求，然后以流的方式进行交互，直顶网络上限。
+      Pull 拉模式 使用拉模式进行消息的获取消费，与消费端处理能力相符。
+8.kafka producer如何优化写入速度？
+    增加线程
+    提高 batch.size
+    增加更多 producer 实例
+    增加 partition 数
+    设置 acks=-1 时，如果延迟增大：可以增大 num.replica.fetchers（follower 同步数据的线程数）来调解；
+    跨数据中心的传输：增加 socket 缓冲区设置以及 OS tcp 缓冲区设置。
+9.kafka producer 写数据，ack  为 0， 1， -1 的时候代表啥， 设置 -1 的时候，什么情况下，leader 会认为一条消息 commit了?
+     1（默认）  数据发送到Kafka后，经过leader成功接收消息的的确认，就算是发送成功了。在这种情况下，如果leader宕机了，则会丢失数据。
+     0 生产者将数据发送出去就不管了，不去等待任何返回。这种情况下数据传输效率最高，但是数据可靠性确是最低的。
+     -1 producer需要等待ISR中的所有follower都确认接收到数据后才算一次发送完成，可靠性最高。当ISR中所有Replica都向Leader发送ACK时，leader才commit，这时候producer才能认为一个请求中的消息都commit了。
+10.kafka  unclean 配置代表啥，会对 spark streaming 消费有什么影响?
+     unclean.leader.election.enable 为true的话，意味着非ISR集合的broker 也可以参与选举，这样有可能就会丢数据，spark streaming在消费过程中拿到的 end offset 会突然变小，导致 spark streaming job挂掉。如果unclean.leader.election.enable参数设置为true，就有可能发生数据丢失和数据不一致的情况，Kafka的可靠性就会降低；而如果unclean.leader.election.enable参数设置为false，Kafka的可用性就会降低。
+11.如果leader crash时，ISR为空怎么办?
+      kafka在Broker端提供了一个配置参数：unclean.leader.election,这个参数有两个值：
+           true（默认）：允许不同步副本成为leader，由于不同步副本的消息较为滞后，此时成为leader，可能会出现消息不一致的情况。
+           false：不允许不同步副本成为leader，此时如果发生ISR列表为空，会一直等待旧leader恢复，降低了可用性
+12.kafka的message格式是什么样的?
+      一个Kafka的Message由一个固定长度的header和一个变长的消息体body组成。header部分由一个字节的magic(文件格式)和四个字节的CRC32(用于判断body消息体是否正常)构成。当magic的值为1的时候，会在magic和crc32之间多一个字节的数据：attributes(保存一些相关属性， 比如是否压缩、压缩格式等等);如果magic的值为0，那么不存在attributes属性。body是由N个字节构成的一个消息体，包含了具体的key/value消息。
+13.kafka中consumer group 是什么概念?
+       同样是逻辑上的概念，是Kafka实现单播和广播两种消息模型的手段。同一个topic的数据，会广播给不同的group；同一个group中的worker，只有一个worker能拿到这个数据。换句话说，对于同一个topic，每个group都可以拿到同样的所有数据，但是数据进入group后只能被其中的一个worker消费。group内的worker可以使用多线程或多进程来实现，也可以将进程分散在多台机器上，worker的数量通常不超过partition的数量，且二者最好保持整数倍关系，因为Kafka在设计时假定了一个partition只能被一个worker消费（同一group内）。
+14.Kafka的用途有哪些？使用场景如何？
+   Kafka具有吞吐量大 简单的优点，适用于日志收集 大数据实时计算等场景
+15.Kafka中的ISR、AR又代表什么？ISR的伸缩又指什么
+   AR：Assigned Replicas 所有副本列表
+   ISR：InSync Replicas 同步副本列表
+   ISR expand ： 有副本恢复同步状态
+   ISR shrink ： 有副本脱离同步状态
+16.Kafka中的HW、LEO、LSO、LW等分别代表什么？
+    HW： High Watermark/高水位。 是已备份消息位置，HW之前的消息均可被consumer消费 leader.HW=min(ISR.LEO) follower.HW=min(follower.LEO,leader.HW)
+    LEO: Log End Offset/日志末端偏移。是下一条消息写入位置(LEO=10 有9条消息)
+    LSO:last stable offset/稳定偏移 。 LSO之前的消息状态都已确认（commit/aborted）主要用于事务
+    LW:
+17.Kafka中是怎么体现消息顺序性的？
+    kafka每个partition中的消息在写入时都是有序的，消费时，每个partition只能被每一个group中的一个消费者消费，保证了消费时也是有序的。整个topic不保证有序
+18.Kafka中的分区器、序列化器、拦截器是否了解？它们之间的处理顺序是什么？
+    分区器:根据键值确定消息应该处于哪个分区中，默认情况下使用轮询分区，可以自行实现分区器接口自定义分区逻辑
+    序列化器:键序列化器和值序列化器，将键和值都转为二进制流 还有反序列化器 将二进制流转为指定类型数据
+    拦截器:两个方法 doSend()方法会在序列化之前完成 onAcknowledgement()方法在消息确认或失败时调用 可以添加多个拦截器按顺序执行
+    调用顺序: 拦截器doSend() -> 序列化器 -> 分区器
+19.消费者提交消费位移时提交的是当前消费到的最新消息的offset还是offset+1?
+    offset+1
+20.有哪些情形会造成重复消费？
+    消费者消费后没有commit offset(程序崩溃/强行kill/消费耗时/自动提交偏移情况下unscrible)
+21.那些情景下会造成消息漏消费？
+    消费者没有处理完消息 提交offset(自动提交偏移 未处理情况下程序异常结束)
+22.KafkaConsumer是非线程安全的，那么怎么样实现多线程消费？
+    每个线程一个消费者
+23.简述消费者与消费组之间的关系
+    消费者从属与消费组，消费偏移以消费组为单位。每个消费组可以独立消费主题的所有数据，同一消费组内消费者共同消费主题数据，每个分区只能被同一消费组内一个消费者消费。
+24.topic的分区数可不可以增加？如果可以怎么增加？如果不可以，那又是为什么？
+    可以增加
+25.topic的分区数可不可以减少？如果可以怎么减少？如果不可以，那又是为什么？
+    不能减少 会丢失数据
+26.创建topic时如何选择合适的分区数？
+    根据集群的机器数量和需要的吞吐量来决定适合的分区数
+27.Kafka目前有那些内部topic，它们都有什么特征？各自的作用又是什么？
+    __consumer_offsets 以双下划线开头，保存消费组的偏移
+28.优先副本是什么？它有什么特殊的作用？
+    优先副本 会是默认的leader副本 发生leader变化时重选举会优先选择优先副本作为leader
+29.简述Kafka的日志目录结构
+    每个partition一个文件夹，包含四类文件.index .log .timeindex leader-epoch-checkpoint
+      .index .log .timeindex 三个文件成对出现 前缀为上一个segment的最后一个消息的偏移 log文件中保存了所有的消息 index文件中保存了稀疏的相对偏移的索引 timeindex保存的则是时间索引
+       leader-epoch-checkpoint中保存了每一任leader开始写入消息时的offset 会定时更新
+       follower被选为leader时会根据这个确定哪些消息可用
