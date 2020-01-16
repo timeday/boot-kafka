@@ -3,6 +3,8 @@ package com.kafka.bootkafka.stream;
 import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 
+import java.io.UnsupportedEncodingException;
+
 public class LogProcessor implements Processor<byte[], byte[]> {
 
     private ProcessorContext context;

@@ -10,6 +10,13 @@ import org.apache.kafka.streams.processor.ProcessorSupplier;
 
 public class ApplicationStream {
 
+    /**
+     * 创建主题：kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic second
+     * kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic first
+     * 创建生产者；kafka-console-producer.bat --broker-list localhost:9092 --topic first
+     * 创建消费者：kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic second --from-beginning
+     * @param args
+     */
     public static void main(String[] args) {
 
         // 定义输入的topic

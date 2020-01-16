@@ -68,11 +68,13 @@ public class CustomConsumerDefineOffSet {
 
     //获取某分区的最新 offset
     private static long getOffset(TopicPartition partition) {
+        //从mysql/redis等获取offset todo
         return 0;
     }
 
     //提交该消费者所有分区的 offset
     private static void commitOffset(Map<TopicPartition, Long> currentOffset) {
+        //保存到mysql/redis中 TODO
         if(currentOffset!=null){
             currentOffset.forEach((topicPartition, offset) -> {
                 System.out.println("主题"+topicPartition.topic()+"----------"+"分区"+topicPartition.partition()+"offset"+offset);

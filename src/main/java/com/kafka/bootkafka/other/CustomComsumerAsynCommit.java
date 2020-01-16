@@ -21,15 +21,14 @@ public class CustomComsumerAsynCommit {
         //Kafka 集群
         props.put("bootstrap.servers", "127.0.0.1:9092");
         //消费者组，只要 group.id 相同，就属于同一个消费者组
-        props.put("group.id", "test");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "test");
         //关闭自动提交 offset
         props.put("enable.auto.commit", "false");
         props.put("key.deserializer",
                 "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer",
                 "org.apache.kafka.common.serialization.StringDeserializer");
-        KafkaConsumer<String, String> consumer = new
-                KafkaConsumer<>(props);
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
         consumer.subscribe(Arrays.asList("first"));//消费者订阅主题
         while (true) {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));//消费者拉取数据
