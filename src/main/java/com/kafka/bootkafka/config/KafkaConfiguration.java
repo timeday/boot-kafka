@@ -126,20 +126,7 @@ public class KafkaConfiguration {
     }
 
 
-    /**
-     * 配置主题
-     * 要在应用启动时就创建主题，可以添加NewTopic类型的Bean。如果该主题已经存在，则忽略Bean。
-     * @return
-     */
-    @Bean(name = "topic3")
-    public NewTopic topic3() {
-        return new NewTopic("topic3", 2, (short) 1);
-    }
 
-    @Bean(name = "topic4")
-    public NewTopic topic4() {
-        return new NewTopic("topic4", 2, (short) 1);
-    }
 
     /**
      * 创建一个kafka管理类，相当于rabbitMQ的管理类rabbitAdmin,没有此bean无法自定义的使用adminClient创建topic
@@ -203,6 +190,7 @@ public class KafkaConfiguration {
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, autoOffsetReset);
         props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, autoCommitInterval);
+        props.put(ConsumerConfig.ALLOW_AUTO_CREATE_TOPICS_CONFIG, true);
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, maxPollRecords);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, autoCommit);
@@ -213,51 +201,27 @@ public class KafkaConfiguration {
         return props;
     }
 
-    /**
-     * 消费者批量工程
-     */
-    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(consumerConfigs()));
-        //设置为批量消费，每个批次数量在Kafka配置参数中设置ConsumerConfig.MAX_POLL_RECORDS_CONFIG
-        factory.setBatchListener(batchListener);
-
-        //设置拉取等待时间(也可间接的理解为延时消费)
-        factory.getContainerProperties().setPollTimeout(pollTimeout);
-
-        //如果消息队列中没有消息，等待timeout毫秒后，调用poll()方法。
-        // 如果队列中有消息，立即消费消息，每次消费的消息的多少可以通过max.poll.records配置。
-        //手动提交无需配置
-        //设置提交偏移量的方式， MANUAL_IMMEDIATE 表示消费一条提交一次；MANUAL表示批量提交一次 ENABLE_AUTO_COMMIT_CONFIG为 false
-        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
-
-        //设置并发量，小于或等于Topic的分区数,并且要在consumerFactory设置一次拉取的数量
-        factory.setConcurrency(concurrency);
-
-        //设置回复模板，类似于rabbitMQ的死信交换机，但是还有区别,
-        //   factory.setReplyTemplate(kafkaTemplate());//发送消息的模板，这里只是消费者的类，所以木有
-
-        //禁止自动启动,用于持久化操作，可先将消息都发送至broker，然后在固定的时间内进行持久化，有丢失消息的风险
-        factory.setAutoStartup(false);
-
-        //使用过滤器
-        //配合RecordFilterStrategy使用，被过滤的信息将被丢弃
-        factory.setAckDiscarded(true);
-        factory.setRecordFilterStrategy(kafkaRecordFilterStrategy);
-
-        return factory;
-    }
 
     /**
-     * 并发数
-     *
+     * 消费者批量处理
      * @return
      */
     @Bean
     @ConditionalOnMissingBean(name = "batchFactory")
-    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, String>> batchFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, String> factory = kafkaListenerContainerFactory();
+    public KafkaListenerContainerFactory<?> batchFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(consumerConfigs()));
+        //设置拉取等待时间(也可间接的理解为延时消费)
+        factory.getContainerProperties().setPollTimeout(pollTimeout);
+        //设置并发量，小于或等于Topic的分区数,并且要在consumerFactory设置一次拉取的数量
         factory.setConcurrency(concurrency);
+        //手动提交
+        //设置提交偏移量的方式， MANUAL_IMMEDIATE 表示消费一条提交一次；MANUAL表示批量提交一次 ENABLE_AUTO_COMMIT_CONFIG为 false
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        factory.setBatchListener(true); // 开启批量监听
+        //配合RecordFilterStrategy使用，被过滤的信息将被丢弃
+        factory.setAckDiscarded(true);
+        factory.setRecordFilterStrategy(kafkaRecordFilterStrategy);
         return factory;
     }
 

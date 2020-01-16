@@ -20,9 +20,7 @@ spring:
       # 自动提交 自动提交，在服务启停时，会有重复数据被生产到kafka中，保证吞吐量的同时，降低了kafka的原子性；
       # 手动提交，保证了kafka的原子性，同时降低了kafka的吞吐量，实际开发中，可跟随数据量的大小，自行分析配置。
       auto-commit-interval: 1000
-
       enable-auto-commit: false
-
       session-timeout: 20000
       #连接超时时间
       max-poll-interval: 15000                            #手动提交设置与poll的心跳数,如果消息队列中没有消息，等待毫秒后，调用poll()方法。如果队列中有消息，立即消费消息，每次消费的消息的多少可以通过max.poll.records配置。
@@ -30,9 +28,5 @@ spring:
       max-partition-fetch-bytes: 15728640                 #设置拉取数据的大小,15M
     listener:
       batch-listener: true                                #是否开启批量消费，true表示批量消费
-      concurrencys: 3                                   #设置消费的线程数
+      concurrencys: 3                                     #设置消费的线程数
       poll-timeout: 1500                                  #只限自动提交，
-
-topicName:
-  topic2: topic2Name
-  topic5: topic5Name

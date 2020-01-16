@@ -33,11 +33,10 @@ public class KafkaConsumer {
     /**
      * 监听topic2主题,单条消费
      */
-    @KafkaListener(topics = "${topicName.topic2}")
+    @KafkaListener(topics = "topic2")
     public void listen1(ConsumerRecord<String, String> record) {
         consumer(record);
     }
-
     /**
      * 监听topic3和topic4,单条消费
      */
@@ -45,28 +44,25 @@ public class KafkaConsumer {
     public void listen2(ConsumerRecord<String, String> record) {
         consumer(record);
     }
-
     /**
      * 监听topic5,批量消费
      */
-    @KafkaListener(topics = "${topicName.topic2}", containerFactory = "batchFactory")
+    @KafkaListener(topics = "topic5", containerFactory = "batchFactory")
     public void listen2(List<ConsumerRecord<String, String>> records, Acknowledgment ack) {
         batchConsumer(records, ack);
     }
-
     /**
      * 单条消费
      */
     public void consumer(ConsumerRecord<String, String> record) {
-        logger.debug("主题:{}, 内容: {}", record.topic(), record.value());
+        logger.info("主题:{}, 内容: {}", record.topic(), record.value());
     }
-
     /**
      * 批量消费
      */
     public void batchConsumer(List<ConsumerRecord<String, String>> records, Acknowledgment ack) {
         records.forEach(record -> consumer(record));
-
+        System.out.println("批量处理records"+records);
         List<User> userList = new ArrayList<>();
         try {
             records.forEach(record -> {
@@ -75,8 +71,9 @@ public class KafkaConsumer {
                 userList.add(user);
             });
         } catch (Exception e) {
+
         } finally {
-            //ack.acknowledge();//手动提交偏移量
+            ack.acknowledge();//手动提交偏移量
         }
 
     }

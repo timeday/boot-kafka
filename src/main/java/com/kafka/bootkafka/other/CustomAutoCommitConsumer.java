@@ -14,7 +14,7 @@ public class CustomAutoCommitConsumer {
     public static void main(String[] args) {
         Properties props = new Properties();
         // 定义 kakfa 服务的地址，不需要将所有 broker 指定上
-        props.put("bootstrap.servers", "hadoop102:9092");
+        props.put("bootstrap.servers", "127.0.0.1:9092");
         // 制定 consumer group
         props.put("group.id", "test");
         // 是否自动确认 offset
@@ -28,12 +28,12 @@ public class CustomAutoCommitConsumer {
         // 定义 consumer
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
         // 消费者订阅的 topic, 可同时订阅多个
-        consumer.subscribe(Arrays.asList("first", "second", "third"));
+        consumer.subscribe(Arrays.asList("topic2"));
         while (true) {
         // 读取数据，读取超时时间为 100ms
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
             for (ConsumerRecord<String, String> record : records)
-                System.out.printf("offset = %d, key = %s, value = %s%n",
+                System.out.printf("结果offset = %d, key = %s, value = %s%n",
                         record.offset(), record.key(), record.value());
         }
     }
